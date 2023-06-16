@@ -1,125 +1,298 @@
 import 'package:flutter/material.dart';
 
-void main() {
-  runApp(const MyApp());
-}
+/// Flutter code sample for [Overlay].
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+void main() => runApp(const OverlayApp());
 
-  // This widget is the root of your application.
+class OverlayApp extends StatelessWidget {
+  const OverlayApp({super.key});
+
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // TRY THIS: Try running your application with "flutter run". You'll see
-        // the application has a blue toolbar. Then, without quitting the app,
-        // try changing the seedColor in the colorScheme below to Colors.green
-        // and then invoke "hot reload" (save your changes or press the "hot
-        // reload" button in a Flutter-supported IDE, or press "r" if you used
-        // the command line to start the app).
-        //
-        // Notice that the counter didn't reset back to zero; the application
-        // state is not lost during the reload. To reset the state, use hot
-        // restart instead.
-        //
-        // This works for code too, not just values: Most code changes can be
-        // tested with just a hot reload.
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-        useMaterial3: true,
-      ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+    return const MaterialApp(
+      home: OverlayExample(),
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  // This widget is the home page of your application. It is stateful, meaning
-  // that it has a State object (defined below) that contains fields that affect
-  // how it looks.
-
-  // This class is the configuration for the state. It holds the values (in this
-  // case the title) provided by the parent (in this case the App widget) and
-  // used by the build method of the State. Fields in a Widget subclass are
-  // always marked "final".
-
-  final String title;
+class OverlayExample extends StatefulWidget {
+  const OverlayExample({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<OverlayExample> createState() => _OverlayExampleState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _OverlayExampleState extends State<OverlayExample> {
+  OverlayEntry? overlayEntry;
+  int currentPageIndex = 0;
 
-  void _incrementCounter() {
-    setState(() {
-      // This call to setState tells the Flutter framework that something has
-      // changed in this State, which causes it to rerun the build method below
-      // so that the display can reflect the updated values. If we changed
-      // _counter without calling setState(), then the build method would not be
-      // called again, and so nothing would appear to happen.
-      _counter++;
-    });
+  void createHighlightOverlay({
+    required AlignmentDirectional alignment,
+    required Color borderColor,
+  }) {
+    // Remove the existing OverlayEntry.
+    removeHighlightOverlay();
+
+    assert(overlayEntry == null);
+
+    overlayEntry = OverlayEntry(
+      // Create a new OverlayEntry.
+      builder: (BuildContext context) {
+        // Align is used to position the highlight overlay
+        // relative to the NavigationBar destination.
+        return SafeArea(
+          child: Align(
+            alignment: alignment,
+            heightFactor: 1.0,
+            child: DefaultTextStyle(
+              style: const TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.bold,
+                fontSize: 14.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: <Widget>[
+                  const Text('Tap here for'),
+                  Builder(builder: (BuildContext context) {
+                    switch (currentPageIndex) {
+                      case 0:
+                        return const Column(
+                          children: <Widget>[
+                            Text(
+                              'Explore page',
+                              style: TextStyle(
+                                color: Colors.red,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_downward,
+                              color: Colors.red,
+                            ),
+                          ],
+                        );
+                      case 1:
+                        return const Column(
+                          children: <Widget>[
+                            Text(
+                              'Commute page',
+                              style: TextStyle(
+                                color: Colors.green,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_downward,
+                              color: Colors.green,
+                            ),
+                          ],
+                        );
+                      case 2:
+                        return const Column(
+                          children: <Widget>[
+                            Text(
+                              'Saved page',
+                              style: TextStyle(
+                                color: Colors.orange,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_downward,
+                              color: Colors.orange,
+                            ),
+                          ],
+                        );
+                      default:
+                        return const Text('No page selected.');
+                    }
+                  }),
+                  SizedBox(
+                    width: MediaQuery.of(context).size.width / 3,
+                    height: 80.0,
+                    child: Center(
+                      child: Container(
+                        decoration: BoxDecoration(
+                          border: Border.all(
+                            color: borderColor,
+                            width: 4.0,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+
+    // Add the OverlayEntry to the Overlay.
+    Overlay.of(context, debugRequiredFor: widget).insert(overlayEntry!);
+  }
+
+  // Remove the OverlayEntry.
+  void removeHighlightOverlay() {
+    overlayEntry?.remove();
+    overlayEntry = null;
+  }
+
+  @override
+  void dispose() {
+    // Make sure to remove OverlayEntry when the widget is disposed.
+    removeHighlightOverlay();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // This method is rerun every time setState is called, for instance as done
-    // by the _incrementCounter method above.
-    //
-    // The Flutter framework has been optimized to make rerunning build methods
-    // fast, so that you can just rebuild anything that needs updating rather
-    // than having to individually change instances of widgets.
     return Scaffold(
       appBar: AppBar(
-        // TRY THIS: Try changing the color here to a specific color (to
-        // Colors.amber, perhaps?) and trigger a hot reload to see the AppBar
-        // change color while the other colors stay the same.
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        // Here we take the value from the MyHomePage object that was created by
-        // the App.build method, and use it to set our appbar title.
-        title: Text(widget.title),
+        title: const Text('Overlay Sample'),
+      ),
+      bottomNavigationBar: NavigationBar(
+        selectedIndex: currentPageIndex,
+        destinations: const <NavigationDestination>[
+          NavigationDestination(
+            icon: Icon(Icons.explore),
+            label: 'Explore',
+          ),
+          NavigationDestination(
+            icon: Icon(Icons.commute),
+            label: 'Commute',
+          ),
+          NavigationDestination(
+            selectedIcon: Icon(Icons.bookmark),
+            icon: Icon(Icons.bookmark_border),
+            label: 'Saved',
+          ),
+        ],
+      ),
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Text(
+            'Use Overlay to highlight a NavigationBar destination',
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 20.0),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              // This creates a highlight Overlay for
+              // the Explore item.
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    currentPageIndex = 0;
+                  });
+                  createHighlightOverlay(
+                    alignment: AlignmentDirectional.bottomStart,
+                    borderColor: Colors.red,
+                  );
+                },
+                child: const Text('Explore'),
+              ),
+              const SizedBox(width: 20.0),
+              // This creates a highlight Overlay for
+              // the Commute item.
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    currentPageIndex = 1;
+                  });
+                  createHighlightOverlay(
+                    alignment: AlignmentDirectional.bottomCenter,
+                    borderColor: Colors.green,
+                  );
+                },
+                child: const Text('Commute'),
+              ),
+              const SizedBox(width: 20.0),
+              // This creates a highlight Overlay for
+              // the Saved item.
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    currentPageIndex = 2;
+                  });
+                  createHighlightOverlay(
+                    alignment: AlignmentDirectional.bottomEnd,
+                    borderColor: Colors.orange,
+                  );
+                },
+                child: const Text('Saved'),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10.0),
+          ElevatedButton(
+            onPressed: () {
+              removeHighlightOverlay();
+            },
+            child: const Text('Remove Overlay'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute<void>(
+                  builder: (BuildContext context) => const NextPage(),
+                ),
+              );
+            },
+            child: const Text('Navigate to Next Page'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class NextPage extends StatelessWidget {
+  const NextPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.purple,
+      appBar: AppBar(
+        title: const Text('Next Page'),
       ),
       body: Center(
-        // Center is a layout widget. It takes a single child and positions it
-        // in the middle of the parent.
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
-          //
-          // TRY THIS: Invoke "debug painting" (choose the "Toggle Debug Paint"
-          // action in the IDE, or press "p" in the console), to see the
-          // wireframe for each widget.
           mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headlineMedium,
-            ),
+          children: [
+            const Text('Next Page'),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute<void>(
+                    builder: (BuildContext context) => const NextPage2(),
+                  ),
+                );
+              },
+              child: const Text('Navigate to Next Page2'),
+            )
           ],
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class NextPage2 extends StatelessWidget {
+  const NextPage2({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.orange,
+      appBar: AppBar(
+        title: const Text('Next Page2'),
+      ),
+      body: const Center(
+        child: Text('Next Page2'),
+      ),
     );
   }
 }
